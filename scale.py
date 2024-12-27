@@ -1,16 +1,8 @@
 from train import train
 from matplotlib import pyplot as plt
+from dataset import LMTextDataset
 
 # d_model, n_heads, n_layers
-
-# configs = [[32, 4, 4],
-#           [64, 4, 4],
-#           [96, 4, 4],
-#           [128, 4, 4]]
-# configs = [[96, 4, 8],
-#            [128, 4, 8],
-#            [160, 4, 8],
-#            [256, 4, 4]]
 
 configs = [[16, 2, 4],
            [32, 4, 4],
@@ -41,4 +33,17 @@ plt.xlabel('Compute (FLOPs)')
 plt.ylabel('Test Loss')
 plt.legend()
 plt.grid(True)
+
+plt.figure()
+for idx, data_list in enumerate(data_lists):
+    tokens = [entry['tokens'] for entry in data_list]
+    loss = [entry['loss'] for entry in data_list]
+    plt.plot(tokens, loss, label=f'Run {idx + 1}')
+
+plt.xscale('log')
+plt.xlabel('Tokens')
+plt.ylabel('Test Loss')
+plt.legend()
+plt.grid(True)
+
 plt.show()
