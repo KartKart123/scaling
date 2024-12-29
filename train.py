@@ -100,7 +100,6 @@ def train(d_model, n_heads, n_layers, run_count):
 
     if tb_log:
         from torch.utils.tensorboard import SummaryWriter
-        # Save run-specific logs
         run_id = f"run_{run_count}"
         tb_writer = SummaryWriter(log_dir=os.path.join(out_dir, 'tb_logs', run_id))
     else:
@@ -186,7 +185,6 @@ def _cleanup_old_ckpts():
     # utility to remove older checkpoints,
     # so we only keep the last 'max_checkpoint'.
     ckpts = [f for f in os.listdir(out_dir) if f.startswith("ckpt-") and f.endswith(".pt")]
-    # Sort by iteration number
     ckpts_sorted = sorted(ckpts, key=lambda x: int(x.split('-')[-1].split('.')[0]))
     if len(ckpts_sorted) > max_checkpoint:
         to_remove = ckpts_sorted[:-max_checkpoint]
@@ -194,7 +192,7 @@ def _cleanup_old_ckpts():
             os.remove(os.path.join(out_dir, ckpt))
 
 def get_flop_per_token(d_model, num_layers):
-    total_flop = 6 * 12 * num_layers * d_model**2 # Kaplan (non-embedding compute)
+    total_flop = 6 * 12 * num_layers * d_model**2 # Kaplan
     return total_flop
 
 if __name__ == "__main__":

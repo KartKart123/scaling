@@ -5,9 +5,8 @@ import torch
 
 class LMTextDataset(Dataset):
     """
-    A dataset that:
     - Takes a list of strings (text samples).
-    - Tokenizes them using a GPT-2 tokenizer.
+    - Tokenizes them using GPT-2 tokenizer.
     - Concatenates them into one long token sequence.
     - Chunks them into fixed-length inputs.
     """
@@ -61,4 +60,5 @@ if __name__ == "__main__":
     val_dataset   = LMTextDataset(val_texts,   tokenizer, block_size=max_seq_len)
     torch.save(train_dataset, "data/train_dataset.pt")
     torch.save(val_dataset, "data/val_dataset.pt")
-    print(f"Number of samples in train_dataset: {len(train_dataset)}")
+    print(f"Number of samples in train dataset: {len(train_dataset)}")
+    print(f"Number of samples in validation dataset: {len(train_dataset)}")

@@ -50,7 +50,7 @@ class Block(nn.Module):
         self.attn = MultiHeadAttention(d_model, n_heads)
         self.ln_2 = nn.LayerNorm(d_model)
         
-        # A basic feed-forward
+        # Basic feed-forward
         self.mlp = nn.Sequential(
             nn.Linear(d_model, 4*d_model, bias=False),
             nn.GELU(),
@@ -102,21 +102,14 @@ class Model(nn.Module):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     def get_num_params(self, non_embedding=True):
-        """
-        Return the number of parameters in the model.
-        """
         n_params = sum(p.numel() for p in self.parameters())
         if non_embedding:
             n_params -= self.pos_emb.weight.numel()
         return n_params
 
     def forward(self, idx, targets=None):
-        """
-        idx shape: (B, T) with integer token IDs
-        Returns: (B, T, vocab_size) logits
-        """
         B, T = idx.size()
-        assert T <= self.max_seq_len, f"Cannot forward sequence of length {T}, max sequence size is only {self.max_seq_len}"
+        assert T <= self.max_seq_len
         
         # Token + positional embeddings
         tok_emb = self.token_emb(idx)  # (B, T, d_model)
@@ -133,13 +126,11 @@ class Model(nn.Module):
         
         # Final layernorm + output projection
         x = self.ln_f(x)
+        logits = self.head(x)
 
         if targets is not None:
-            logits = self.head(x)
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
         else:
-            # inference-time mini-optimization: only forward the lm_head on the very last position
-            logits = self.head(x[:, [-1], :]) # note: using list [-1] to preserve the time dim
             loss = None
 
         return logits, loss

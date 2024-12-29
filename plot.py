@@ -4,7 +4,6 @@ from matplotlib.colors import Normalize
 import json
 import numpy as np
 
-# Load data from all uploaded files
 file_paths = [
     "models/data_1",
     "models/data_2",
@@ -23,7 +22,7 @@ for file_path in file_paths:
     with open(file_path, 'r') as f:
         data = json.load(f)
         data_list.append(data)
-# Function to format numbers in a compact form (e.g., 1M, 1K)
+
 def format_params(num):
     if num >= 1e6:
         return f"{num / 1e6:.1f}M"
@@ -34,15 +33,14 @@ def format_params(num):
 
 # Extract the number of parameters for each dataset
 params_list = [data[0]['params'] for data in data_list]
-log_params = np.log10(params_list)  # Use log scale for coloring
+log_params = np.log10(params_list)
 
 # Normalize the colors based on log(params)
 norm = Normalize(vmin=min(log_params), vmax=max(log_params))
-cmap = plt.cm.viridis  # Choose a colormap
+cmap = plt.cm.viridis
 sm = ScalarMappable(cmap=cmap, norm=norm)
-sm.set_array([])  # Necessary for creating the colorbar
+sm.set_array([])
 
-# Re-plot with formatted parameter labels
 fig, ax = plt.subplots(figsize=(12, 7))
 
 for idx, data in enumerate(data_list):
@@ -106,8 +104,5 @@ ax3.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.7)
 # Add colorbar with proper positioning
 cbar3 = fig3.colorbar(sm, ax=ax3, label="Log10(Non-embedding parameters)", orientation='vertical')
 
-# Adjust layout to prevent overlapping
 plt.tight_layout()
-
-# Show the updated plot
 plt.show()
