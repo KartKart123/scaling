@@ -37,31 +37,38 @@ class MultiHeadAttention(nn.Module):
                               causal=True)
 
         # Flatten back to (B, T, d_model)
-        out = out.view(B, T, C)
+        out = out.view(B, T, C).contiguous()
 
         # Final linear
         out = self.proj(out)
         return out
     
 class Block(nn.Module):
-    def __init__(self, d_model, n_heads):
+    def __init__(self, d_model, n_heads, intermediate_size=None):
         super().__init__()
-        self.ln_1 = nn.LayerNorm(d_model)
+        if (intermediate_size is None):
+            intermediate_size = d_model * 4
+        self.ln_1 = nn.RMSNorm(d_model)
         self.attn = MultiHeadAttention(d_model, n_heads)
-        self.ln_2 = nn.LayerNorm(d_model)
+        self.ln_2 = nn.RMSNorm(d_model)
         
-        # Basic feed-forward
-        self.mlp = nn.Sequential(
-            nn.Linear(d_model, 4*d_model, bias=False),
-            nn.GELU(),
-            nn.Linear(4*d_model, d_model, bias=False),
-        )
+        # SwiGLU feed-forward
+        self.gate_proj = nn.Linear(d_model, self.intermediate_size, bias=False)
+        self.up_proj = nn.Linear(d_model, self.intermediate_size, bias=False)
+        self.down_proj = nn.Linear(self.intermediate_size, d_model, bias=False)
+        self.act_fn = nn.SiLU()
 
     def forward(self, x):
         # Self-attention + residual
-        x = x + self.attn(self.ln_1(x))
-        # Feed-forward + residual
-        x = x + self.mlp(self.ln_2(x))
+        residual = x
+        x = self.ln_1(x)
+        x = residual + self.attn(x)
+
+        # SwiGLU feed-forward + residual
+        residual = x
+        x = self.ln_2(x)
+        x = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
+        x = residual + x
         return x
 
 class Model(nn.Module):
@@ -80,8 +87,8 @@ class Model(nn.Module):
             for _ in range(n_layers)
         ])
         
-        # Final LayerNorm
-        self.ln_f = nn.LayerNorm(d_model)
+        # Final RMSNorm
+        self.ln_f = nn.RMSNorm(d_model)
         
         # Linear head to vocab logits
         self.head = nn.Linear(d_model, vocab_size, bias=False)
@@ -124,7 +131,7 @@ class Model(nn.Module):
         for block in self.blocks:
             x = block(x)
         
-        # Final layernorm + output projection
+        # Final normalization + output projection
         x = self.ln_f(x)
         logits = self.head(x)
 

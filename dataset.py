@@ -61,4 +61,4 @@ if __name__ == "__main__":
     torch.save(train_dataset, "data/train_dataset.pt")
     torch.save(val_dataset, "data/val_dataset.pt")
     print(f"Number of samples in train dataset: {len(train_dataset)}")
-    print(f"Number of samples in validation dataset: {len(train_dataset)}")
+    print(f"Number of samples in validation dataset: {len(val_dataset)}")
