@@ -25,7 +25,7 @@ gradient_accumulation_steps = batch_size // batch_size_per_device
 max_seq_len = 256 #128
 
 # model
-d_model = 320
+d_model = 64
 n_heads = 4
 n_layers = 4
 
