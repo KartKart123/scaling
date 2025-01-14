@@ -10,7 +10,7 @@ from transformers import GPT2Tokenizer
 
 #Config
 out_dir = 'models'
-eval_interval = 50
+eval_interval = 500
 log_interval = 50
 max_checkpoint = 3  # max number of checkpoints to save
 
@@ -31,7 +31,7 @@ n_layers = 4
 
 # adamw optimizer
 learning_rate = 5e-4  # max learning rate
-max_iters = 6000   # total number of training iterations
+max_iters = 50000   # total number of training iterations
 weight_decay = 1e-1
 beta1 = 0.9
 beta2 = 0.95
@@ -40,7 +40,7 @@ grad_clip = 1.0
 # learning rate decay settings
 decay_lr = True
 warmup_iters = 500
-lr_decay_iters = 100_000
+lr_decay_iters = 50_000
 min_lr = learning_rate / 10
 
 # system
@@ -175,6 +175,10 @@ def train(d_model, n_heads, n_layers, run_count):
 
             if iter_count >= max_iters:
                 print("Training complete.")
+                ckpt_path = os.path.join(out_dir, f'ckpt-{iter_count}.pt')
+                torch.save({'model_state_dict': model.state_dict(),
+                            'iter_count': iter_count,
+                            'val_loss': val_loss}, ckpt_path)
                 run_id = f"data_{run_count}"
                 with open(os.path.join(out_dir, run_id), 'w') as f:
                     json.dump(datalog, f)
